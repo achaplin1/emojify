@@ -19,8 +19,8 @@ const screen = document.getElementById("screen");
 
 let currentPseudo = "";
 let currentRoom = "";
+let myWord = null;
 
-// Écran d'accueil
 function showHome() {
   screen.innerHTML = `
     <div class="fade">
@@ -85,16 +85,40 @@ function waitRoom(roomId) {
         list.appendChild(li);
       });
       if (all.length === 3) {
-        showEmojiPickerScreen(); // lancement temporaire
+        assignWords(all);
       }
     }
   });
 }
 
-function showEmojiPickerScreen() {
+async function assignWords(playerList) {
+  const res = await fetch("mots.json");
+  const mots = await res.json();
+  const categories = Object.keys(mots);
+  const playerWords = {};
+  playerList.forEach(p => {
+    const cat = categories[Math.floor(Math.random() * categories.length)];
+    const wordList = mots[cat];
+    const mot = wordList[Math.floor(Math.random() * wordList.length)];
+    playerWords[p] = { mot, cat };
+  });
+  await set(ref(db, 'rooms/' + currentRoom + '/mots'), playerWords);
+  showEmojiPickerScreen();
+}
+
+async function showEmojiPickerScreen() {
+  const wordSnap = await get(ref(db, 'rooms/' + currentRoom + '/mots/' + currentPseudo));
+  if (!wordSnap.exists()) {
+    screen.innerHTML = "<p>Erreur : aucun mot trouvé.</p>";
+    return;
+  }
+  myWord = wordSnap.val();
   screen.innerHTML = `
     <div class="fade">
-      <h2 class="title">Choisis jusqu’à 4 emojis</h2>
+      <h1 class="title">🎮 Emojify</h1>
+      <h2>Catégorie : ${myWord.cat}</h2>
+      <p><strong>Mot à emojifier :</strong> ${myWord.mot}</p>
+      <h3>Choisis jusqu’à 4 emojis</h3>
       <div id="emojiSlots">
         <div class="emoji-slot empty"></div>
         <div class="emoji-slot empty"></div>
@@ -104,8 +128,8 @@ function showEmojiPickerScreen() {
       <div id="emojiPicker"></div>
     </div>
   `;
-  loadEmojis();
   setupEmojiSlotListeners();
+  loadEmojis();
 }
 
 function setupEmojiSlotListeners() {
@@ -122,15 +146,23 @@ function setupEmojiSlotListeners() {
 
 async function loadEmojis() {
   const res = await fetch("emojis_structured.json");
-  const data = await res.json();
+  const rawData = await res.json();
+  const grouped = {};
+  Object.values(rawData).forEach(entry => {
+    if (!grouped[entry.group]) grouped[entry.group] = [];
+    if (!grouped[entry.group].includes(entry.emoji)) {
+      grouped[entry.group].push(entry.emoji);
+    }
+  });
+
   const picker = document.getElementById("emojiPicker");
-  for (const group in data) {
+  for (const group in grouped) {
     const title = document.createElement("h4");
     title.textContent = group;
     title.style.width = "100%";
     title.style.marginTop = "1rem";
     picker.appendChild(title);
-    data[group].forEach(char => {
+    grouped[group].forEach(char => {
       const span = document.createElement("span");
       span.textContent = char;
       span.className = "emoji";
@@ -151,5 +183,4 @@ function addEmojiToSlot(char) {
   }
 }
 
-// Lancement du site
 showHome();
