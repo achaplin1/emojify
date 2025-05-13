@@ -65,7 +65,12 @@ function joinRoom() {
 }
 
 function waitRoom(roomId) {
-    screen.innerHTML = '<div class="fade"><h2>En attente des joueurs...</h2><ul id="playerList"></ul></div>';
+    screen.innerHTML = `
+<div class="fade">
+  <h2>Salle : ${roomId}</h2>
+  <p>En attente des joueurs...</p>
+  <ul id="playerList"></ul>
+</div>`;
     const playersRef = ref(db, 'rooms/' + roomId + '/players');
     onValue(playersRef, (snapshot) => {
         const list = document.getElementById("playerList");
