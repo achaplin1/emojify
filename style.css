@@ -1,72 +1,82 @@
 body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #3ca55c, #b5ac49);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    overflow: hidden;
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #3ca55c, #b5ac49);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
 #app {
-    background: rgba(0, 0, 0, 0.4);
-    padding: 2rem;
-    border-radius: 16px;
-    width: 95%;
-    max-width: 800px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    animation: fadeIn 1s ease;
-    overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  width: 90%;
+  max-width: 600px;
 }
 
-h1.title {
-    text-align: center;
-    margin-bottom: 1rem;
-    font-size: 2rem;
+.title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 1rem;
 }
 
-#emojiSlots {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 1rem;
+input, button {
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: none;
+  margin: 0.3rem;
 }
+
+input {
+  width: 60%;
+}
+
+button {
+  background-color: #b5ac49;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background-color: #d6ce6f;
+}
+
 .emoji-slot {
-    font-size: 2.5rem;
-    background: rgba(255,255,255,0.2);
-    border-radius: 12px;
-    width: 60px;
-    height: 60px;
-    line-height: 60px;
-    text-align: center;
-    cursor: pointer;
-}
-.emoji-slot.empty {
-    border: 2px dashed #ffffff66;
+  display: inline-block;
+  width: 60px;
+  height: 60px;
+  font-size: 2rem;
+  line-height: 60px;
+  text-align: center;
+  margin: 0.5rem;
+  background: rgba(255,255,255,0.1);
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  cursor: pointer;
 }
 
 #emojiPicker {
-    background: rgba(0,0,0,0.2);
-    padding: 1rem;
-    border-radius: 12px;
-    height: 200px;
-    overflow-y: scroll;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: flex-start;
-}
-.emoji {
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-.emoji:hover {
-    transform: scale(1.3);
+  max-height: 200px;
+  overflow-y: scroll;
+  background: rgba(0,0,0,0.2);
+  padding: 0.5rem;
+  border-radius: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+.emoji {
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.emoji:hover {
+  transform: scale(1.3);
 }
