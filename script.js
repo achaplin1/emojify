@@ -19,7 +19,77 @@ const screen = document.getElementById("screen");
 
 let currentPseudo = "";
 let currentRoom = "";
-let emojiSlots = [];
+
+// Écran d'accueil
+function showHome() {
+  screen.innerHTML = `
+    <div class="fade">
+      <h1 class="title">🎮 Emojify</h1>
+      <input type="text" id="pseudo" placeholder="Votre pseudo" />
+      <br/>
+      <button id="createRoomBtn">Créer une salle</button>
+      <button id="joinRoomBtn">Rejoindre une salle</button>
+      <input type="text" id="roomCode" placeholder="Code de la salle" />
+    </div>
+  `;
+  document.getElementById("createRoomBtn").addEventListener("click", createRoom);
+  document.getElementById("joinRoomBtn").addEventListener("click", joinRoom);
+}
+
+function generateRoomCode() {
+  return Math.random().toString(36).substring(2, 6).toUpperCase();
+}
+
+function createRoom() {
+  currentPseudo = document.getElementById("pseudo").value.trim();
+  if (!currentPseudo) return alert("Entrez un pseudo.");
+  const roomId = generateRoomCode();
+  currentRoom = roomId;
+  const playersRef = ref(db, 'rooms/' + roomId + '/players');
+  const newPlayerRef = push(playersRef);
+  set(newPlayerRef, currentPseudo).then(() => {
+    waitRoom(roomId);
+  });
+}
+
+function joinRoom() {
+  currentPseudo = document.getElementById("pseudo").value.trim();
+  const roomId = document.getElementById("roomCode").value.trim().toUpperCase();
+  if (!currentPseudo || !roomId) return alert("Entrez un pseudo et un code.");
+  currentRoom = roomId;
+  const playersRef = ref(db, 'rooms/' + roomId + '/players');
+  const newPlayerRef = push(playersRef);
+  set(newPlayerRef, currentPseudo).then(() => {
+    waitRoom(roomId);
+  });
+}
+
+function waitRoom(roomId) {
+  screen.innerHTML = `
+    <div class="fade">
+      <h2>Salle : ${roomId}</h2>
+      <p>En attente des joueurs...</p>
+      <ul id="playerList"></ul>
+    </div>
+  `;
+  const playersRef = ref(db, 'rooms/' + roomId + '/players');
+  onValue(playersRef, (snapshot) => {
+    const list = document.getElementById("playerList");
+    list.innerHTML = "";
+    const players = snapshot.val();
+    if (players) {
+      const all = Object.values(players);
+      all.forEach(p => {
+        const li = document.createElement("li");
+        li.textContent = p;
+        list.appendChild(li);
+      });
+      if (all.length === 3) {
+        showEmojiPickerScreen(); // lancement temporaire
+      }
+    }
+  });
+}
 
 function showEmojiPickerScreen() {
   screen.innerHTML = `
@@ -81,4 +151,5 @@ function addEmojiToSlot(char) {
   }
 }
 
-showEmojiPickerScreen();
+// Lancement du site
+showHome();
