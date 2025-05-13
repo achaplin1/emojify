@@ -17,7 +17,11 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const screen = document.getElementById("screen");
 
-// Écran d'accueil
+let currentPseudo = "";
+let currentRoom = "";
+let myWord = null;
+
+// Page d'accueil
 function showHome() {
     screen.innerHTML = `
         <div class="fade">
@@ -32,15 +36,10 @@ function showHome() {
     document.getElementById("joinRoomBtn").addEventListener("click", joinRoom);
 }
 
-let currentPseudo = "";
-let currentRoom = "";
-
-// Génère un code de salle aléatoire
 function generateRoomCode() {
     return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
 
-// Crée une salle
 function createRoom() {
     currentPseudo = document.getElementById("pseudo").value.trim();
     if (!currentPseudo) return alert("Entrez un pseudo.");
@@ -53,7 +52,6 @@ function createRoom() {
     });
 }
 
-// Rejoindre une salle
 function joinRoom() {
     currentPseudo = document.getElementById("pseudo").value.trim();
     const roomId = document.getElementById("roomCode").value.trim().toUpperCase();
@@ -66,9 +64,8 @@ function joinRoom() {
     });
 }
 
-// Attente des joueurs
 function waitRoom(roomId) {
-    screen.innerHTML = `<div class="fade"><h2>Salle : ${roomId}</h2><ul id="playerList"></ul><p>En attente de 3 joueurs...</p></div>`;
+    screen.innerHTML = '<div class="fade"><h2>En attente des joueurs...</h2><ul id="playerList"></ul></div>';
     const playersRef = ref(db, 'rooms/' + roomId + '/players');
     onValue(playersRef, (snapshot) => {
         const list = document.getElementById("playerList");
@@ -82,22 +79,53 @@ function waitRoom(roomId) {
                 list.appendChild(li);
             });
             if (all.length === 3) {
-                startGame(all);
+                assignWords(all);
             }
         }
     });
 }
 
-// Démarrage du jeu (démo)
-function startGame(playerList) {
-    screen.innerHTML = `
-        <div class="fade">
-            <h2>🎉 La partie commence !</h2>
-            <p>Joueurs : ${playerList.join(', ')}</p>
-            <p>(Développement du gameplay complet en cours...)</p>
-        </div>
-    `;
+// Attribution des mots à chaque joueur
+async function assignWords(playerList) {
+    const res = await fetch("mots.json");
+    const mots = await res.json();
+    const categories = Object.keys(mots);
+    const playerWords = {};
+
+    playerList.forEach(p => {
+        const cat = categories[Math.floor(Math.random() * categories.length)];
+        const wordList = mots[cat];
+        const mot = wordList[Math.floor(Math.random() * wordList.length)];
+        playerWords[p] = { mot, cat };
+    });
+
+    await set(ref(db, 'rooms/' + currentRoom + '/mots'), playerWords);
+    showEmojifyScreen(playerWords[currentPseudo]);
 }
 
-// Initialisation
+function showEmojifyScreen(data) {
+    myWord = data;
+    screen.innerHTML = `
+        <div class="fade">
+            <h2>Emojifie ceci :</h2>
+            <p><strong>Catégorie :</strong> ${data.cat}</p>
+            <p><strong>Mot :</strong> ${data.mot}</p>
+            <input type="text" id="emojiInput" maxlength="10" placeholder="Entrez jusqu’à 4 emojis" />
+            <br/>
+            <button id="submitEmojis">Valider</button>
+        </div>
+    `;
+    document.getElementById("submitEmojis").addEventListener("click", () => {
+        const val = document.getElementById("emojiInput").value.trim();
+        if (!val || [...val].length > 4) {
+            alert("Utilisez entre 1 et 4 emojis max.");
+            return;
+        }
+        const emojiRef = ref(db, 'rooms/' + currentRoom + '/emojis/' + currentPseudo);
+        set(emojiRef, { word: myWord, emojis: val }).then(() => {
+            screen.innerHTML = "<div class='fade'><p>En attente des autres joueurs...</p></div>";
+        });
+    });
+}
+
 showHome();
