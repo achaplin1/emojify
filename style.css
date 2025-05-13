@@ -1,19 +1,57 @@
 body {
-    font-family: sans-serif;
-    background-color: #fafafa;
-    color: #222;
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #3ca55c, #b5ac49);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+#app {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 2rem;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 1s ease;
+}
+
+h1.title {
     text-align: center;
-    padding: 2em;
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
 }
+
+input, button {
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 8px;
+    margin: 0.5rem;
+    font-size: 1rem;
+}
+
 input {
-    padding: 0.5em;
-    margin: 0.5em;
+    width: 60%;
 }
+
 button {
-    padding: 0.5em 1em;
-    margin: 0.5em;
+    background: #b5ac49;
+    color: white;
     cursor: pointer;
+    transition: background 0.3s;
 }
-#room {
-    margin-top: 2em;
+button:hover {
+    background: #d6ce6f;
+}
+
+.fade {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
