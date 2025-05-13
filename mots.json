@@ -1,30 +1,18 @@
 {
   "films": [
     "Inception",
-    "Titanic",
-    "Interstellar",
-    "Le Roi Lion",
-    "Avengers"
+    "Titanic"
   ],
   "jeux": [
     "Zelda",
-    "Minecraft",
-    "Among Us",
-    "Tetris",
-    "League of Legends"
+    "Minecraft"
   ],
   "personnages": [
     "Harry Potter",
-    "Dark Vador",
-    "Mario",
-    "Sherlock Holmes",
-    "Spider-Man"
+    "Dark Vador"
   ],
   "concepts": [
     "La jalousie",
-    "Apocalypse",
-    "Rêve lucide",
-    "Voyage dans le temps",
-    "L’amitié"
+    "Voyage dans le temps"
   ]
 }

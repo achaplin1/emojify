@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, onValue, push, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "ATzASyCmEfKweqbEXzn8q20lh7Q9MsfgrnK3p49Y",
   authDomain: "emojify-4d1eb.firebaseapp.com",
@@ -20,9 +19,12 @@ const screen = document.getElementById("screen");
 let currentPseudo = "";
 let currentRoom = "";
 let myWord = null;
+let selectedEmojis = [];
+let emojiGroups = [];
+let selectedCategory = null;
 
 function showHome() {
-  screen.innerHTML = `
+  screen.innerHTML = \`
     <div class="fade">
       <h1 class="title">🎮 Emojify</h1>
       <input type="text" id="pseudo" placeholder="Votre pseudo" />
@@ -31,7 +33,7 @@ function showHome() {
       <button id="joinRoomBtn">Rejoindre une salle</button>
       <input type="text" id="roomCode" placeholder="Code de la salle" />
     </div>
-  `;
+  \`;
   document.getElementById("createRoomBtn").addEventListener("click", createRoom);
   document.getElementById("joinRoomBtn").addEventListener("click", joinRoom);
 }
@@ -65,13 +67,13 @@ function joinRoom() {
 }
 
 function waitRoom(roomId) {
-  screen.innerHTML = `
+  screen.innerHTML = \`
     <div class="fade">
-      <h2>Salle : ${roomId}</h2>
+      <h2>Salle : \${roomId}</h2>
       <p>En attente des joueurs...</p>
       <ul id="playerList"></ul>
     </div>
-  `;
+  \`;
   const playersRef = ref(db, 'rooms/' + roomId + '/players');
   onValue(playersRef, (snapshot) => {
     const list = document.getElementById("playerList");
@@ -113,73 +115,98 @@ async function showEmojiPickerScreen() {
     return;
   }
   myWord = wordSnap.val();
-  screen.innerHTML = `
+  selectedEmojis = [];
+
+  screen.innerHTML = \`
     <div class="fade">
       <h1 class="title">🎮 Emojify</h1>
-      <h2>Catégorie : ${myWord.cat}</h2>
-      <p><strong>Mot à emojifier :</strong> ${myWord.mot}</p>
+      <h2>Catégorie : \${myWord.cat}</h2>
+      <p><strong>Mot à emojifier :</strong> \${myWord.mot}</p>
       <h3>Choisis jusqu’à 4 emojis</h3>
       <div id="emojiSlots">
-        <div class="emoji-slot empty"></div>
-        <div class="emoji-slot empty"></div>
-        <div class="emoji-slot empty"></div>
-        <div class="emoji-slot empty"></div>
+        <span id="slot1" class="emoji-slot"></span>
+        <span id="slot2" class="emoji-slot"></span>
+        <span id="slot3" class="emoji-slot"></span>
+        <span id="slot4" class="emoji-slot"></span>
       </div>
-      <div id="emojiPicker"></div>
+      <div id="emojiSelector">
+        <div id="categoryList"></div>
+        <div id="emojiContent"></div>
+      </div>
     </div>
-  `;
-  setupEmojiSlotListeners();
-  loadEmojis();
+  \`;
+
+  loadEmojiFromGroupedJson();
 }
 
-function setupEmojiSlotListeners() {
-  const slots = document.querySelectorAll('.emoji-slot');
-  slots.forEach(slot => {
-    slot.addEventListener('click', () => {
-      if (slot.textContent !== "") {
-        slot.textContent = "";
-        slot.classList.add("empty");
-      }
+async function loadEmojiFromGroupedJson() {
+  try {
+    const res = await fetch("data-by-group.json");
+    emojiGroups = await res.json();
+    const listDiv = document.getElementById("categoryList");
+    emojiGroups.forEach((groupe, index) => {
+      const btn = document.createElement("button");
+      btn.textContent = groupe.name;
+      btn.className = "category-btn";
+      btn.addEventListener("click", () => {
+        selectedCategory = index;
+        updateCategoryDisplay();
+      });
+      listDiv.appendChild(btn);
     });
-  });
-}
-
-async function loadEmojis() {
-  const res = await fetch("emojis_structured.json");
-  const rawData = await res.json();
-  const grouped = {};
-  Object.values(rawData).forEach(entry => {
-    if (!grouped[entry.group]) grouped[entry.group] = [];
-    if (!grouped[entry.group].includes(entry.emoji)) {
-      grouped[entry.group].push(entry.emoji);
-    }
-  });
-
-  const picker = document.getElementById("emojiPicker");
-  for (const group in grouped) {
-    const title = document.createElement("h4");
-    title.textContent = group;
-    title.style.width = "100%";
-    title.style.marginTop = "1rem";
-    picker.appendChild(title);
-    grouped[group].forEach(char => {
-      const span = document.createElement("span");
-      span.textContent = char;
-      span.className = "emoji";
-      span.addEventListener("click", () => addEmojiToSlot(char));
-      picker.appendChild(span);
-    });
+    selectedCategory = 0;
+    updateCategoryDisplay();
+  } catch (e) {
+    console.error("Erreur JSON emojis :", e);
   }
 }
 
-function addEmojiToSlot(char) {
-  const slots = document.querySelectorAll('.emoji-slot');
-  for (const slot of slots) {
-    if (slot.textContent === "") {
-      slot.textContent = char;
-      slot.classList.remove("empty");
-      break;
-    }
+function updateCategoryDisplay() {
+  document.querySelectorAll(".category-btn").forEach((btn, idx) => {
+    btn.classList.toggle("active", idx === selectedCategory);
+  });
+
+  const group = emojiGroups[selectedCategory];
+  const content = document.getElementById("emojiContent");
+  content.innerHTML = "";
+
+  const title = document.createElement("h3");
+  title.textContent = group.name;
+  content.appendChild(title);
+
+  const list = document.createElement("div");
+  list.className = "emoji-list";
+
+  group.emojis.forEach(e => {
+    const b = document.createElement("button");
+    b.textContent = e.emoji;
+    b.className = "emoji-btn";
+    b.addEventListener("click", () => selectEmoji(e.emoji));
+    list.appendChild(b);
+  });
+
+  content.appendChild(list);
+}
+
+function selectEmoji(char) {
+  if (selectedEmojis.includes(char)) {
+    selectedEmojis = selectedEmojis.filter(e => e !== char);
+  } else if (selectedEmojis.length < 4) {
+    selectedEmojis.push(char);
+  }
+  updateSlots();
+}
+
+function updateSlots() {
+  for (let i = 1; i <= 4; i++) {
+    const slot = document.getElementById("slot" + i);
+    slot.textContent = selectedEmojis[i - 1] || "";
+    slot.onclick = () => {
+      if (selectedEmojis[i - 1]) {
+        selectedEmojis.splice(i - 1, 1);
+        updateSlots();
+      }
+    };
   }
 }
 
