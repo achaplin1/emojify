@@ -1,0 +1,19 @@
+body {
+    font-family: sans-serif;
+    background-color: #fafafa;
+    color: #222;
+    text-align: center;
+    padding: 2em;
+}
+input {
+    padding: 0.5em;
+    margin: 0.5em;
+}
+button {
+    padding: 0.5em 1em;
+    margin: 0.5em;
+    cursor: pointer;
+}
+#room {
+    margin-top: 2em;
+}

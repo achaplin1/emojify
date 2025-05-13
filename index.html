@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Emojify en ligne</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="script.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>🎮 Emojify</h1>
+        <div id="login">
+            <input type="text" id="pseudo" placeholder="Votre pseudo" />
+            <button id="createRoomBtn">Créer une salle</button>
+            <input type="text" id="roomCode" placeholder="Code de la salle" />
+            <button id="joinRoomBtn">Rejoindre</button>
+        </div>
+        <div id="room" style="display:none;">
+            <p>Salle : <span id="roomIdDisplay"></span></p>
+            <p>Joueurs :</p>
+            <ul id="playerList"></ul>
+        </div>
+    </div>
+</body>
+</html>
